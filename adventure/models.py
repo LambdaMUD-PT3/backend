@@ -132,7 +132,7 @@ class Player(models.Model):
     currentRoom = models.IntegerField(default=3700)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     def initialize(self):
-        if self.currentRoom == 0:
+        if self.currentRoom == 3700:
             self.currentRoom = Room.objects.first().id
             self.save()
     def room(self):
