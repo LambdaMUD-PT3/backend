@@ -27,3 +27,8 @@
 * Response:
   * `{"3700": {"title": "Entrance to Mud School", "description": "This is the entrance to the Merc Mud School.  Go north to go through mud\nschool.  If you have been here before and want to go directly to the arena,\ngo south.\n\nA sign warns 'You may not pass these doors once you have passed level 5.'\n", "x": 3, "y": 0, "exits": {"n": 3757, "e": 3706}}, (and all the others)}`
 
+### Say
+* Request: (Replace token string with logged in user's auth token)
+  * `curl -X POST -H 'Authorization: Token 6b7b9d0f33bd76e75b0a52433f268d3037e42e66' -H "Content-Type: application/json" -d '{"message":"Hello World!"}' https://lambda-mud-11.herokuapp.com/api/adv/rooms/`
+* Response:
+  * `{"message": "You said, \"Hello World!\""}`
