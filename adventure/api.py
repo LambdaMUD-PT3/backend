@@ -89,8 +89,8 @@ def rooms(request):
         if room.s_to > 0:
             roomData[room.room_id]["exits"].update({"s": room.s_to})
         if room.e_to > 0:
-            roomData[room.room_id]["exits"].update({"e": room.s_to})
+            roomData[room.room_id]["exits"].update({"e": room.e_to})
         if room.w_to > 0:
-            roomData[room.room_id]["exits"].update({"w": room.s_to})
+            roomData[room.room_id]["exits"].update({"w": room.w_to})
 
     return JsonResponse(roomData, safe=True)
