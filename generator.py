@@ -45,80 +45,43 @@ class World:
         self.height = 0
         self.rooms = {}
 
-    def loadGraph(self, roomGraph):
-        #{"0": 
-        #  {"room_id": 0, 
-        #   "title": "A brightly lit room", 
-        #   "description": "You are standing in the center of a brightly lit room.", 
-        #   "coordinates": "(60,60)", 
-        #   "players": ["player204"],
-        #   "terrain": "NORMAL",
-        #   "items": [],
-        #   "exits": ["n", "s", "e", "w"],
-        #   "cooldown": 1.0,
-        #   "errors": [],
-        #   "messages": [],
-        #   "visited": {"n": "?", "s": "?", "e": "?", "w": "?"},
-        #   "x": 60,
-        #   "y": 60},
-        numRooms = len(roomGraph)
-        rooms = [None] * numRooms
-        gridSize = 1
+def loadGraph(roomGraph):
+    numRooms = len(roomGraph)
+    rooms = [None] * numRooms
 
-        newGraph = {}
-        for key in roomGraph.keys():
-            # Convert non-int keys to int
-            newId = int(key)
-            newGraph[newId] = {}
-            newGraph[newId].update(roomGraph[key])
-            
-        roomGraph = newGraph
-        # print(f"DEBUG::roomGraph::{roomGraph}")
-
-        for i in roomGraph.keys():
-            try:
-                x = int(roomGraph[i]['x'])
-                y = int(roomGraph[i]['y'])
-            except:
-                print(f"ERROR::loadGraph::{roomGraph[i]}")
-            gridSize = max(gridSize, x, y)
-
-
-            # self.rooms[i] = Room(roomGraph[i])
-            # id, name, description, x, y
-            # print(f"DEBUG::{i}, {roomGraph[i].get('title')}, {roomGraph[i].get('description')}, {roomGraph[i].get('x')}, {roomGraph[i].get('y')}")
-            self.rooms[i] = Room(i, roomGraph[i].get('title'), roomGraph[i].get('description'), roomGraph[i].get('x'), roomGraph[i].get('y'))
-            self.rooms[i].save()
-            # print(f"DEBUG::room::{self.rooms[i]}")
-            # self.rooms[i].printRoomDescription()
-
-        self.grid = []
-        gridSize += 1
-        self.gridSize = gridSize
-
-        for i in range(0, gridSize):
-            self.grid.append([None] * gridSize)
+    newGraph = {}
+    for key in roomGraph.keys():
+        newId = int(key)
+        newGraph[newId] = {}
+        newGraph[newId].update(roomGraph[key])
         
-        # print(f"DEBUG::rooms::{self.rooms}")
-        for roomID in roomGraph.keys():
-            room = self.rooms[roomID]
-            self.grid[room.x][room.y] = room
-            if 'n' in roomGraph[roomID]['exits'] :
-                ex = int(roomGraph[roomID]['exits'].get('n'))
-                self.rooms[roomID].connectRooms('n', self.rooms[ex])
-            if 's' in roomGraph[roomID]['exits'] :
-                # print(f"Connecting {self.rooms[roomID]}")
-                # print(f"to... {self.rooms[ex]}")
-                ex = int(roomGraph[roomID]['exits'].get('s'))
-                self.rooms[roomID].connectRooms('s', self.rooms[ex])
-            if 'e' in roomGraph[roomID]['exits'] :
-                ex = int(roomGraph[roomID]['exits'].get('e'))
-                self.rooms[roomID].connectRooms('e', self.rooms[ex])
-            if 'w' in roomGraph[roomID]['exits'] :
-                ex = int(roomGraph[roomID]['exits'].get('w'))
-                self.rooms[roomID].connectRooms('w', self.rooms[ex])
+    roomGraph = newGraph
+
+    for i in roomGraph.keys():
+        try:
+            x = int(roomGraph[i]['x'])
+            y = int(roomGraph[i]['y'])
+        except:
+            print(f"ERROR::loadGraph::{roomGraph[i]}")
+
+        rooms[i] = Room(i, roomGraph[i].get('title'), roomGraph[i].get('description'), roomGraph[i].get('x'), roomGraph[i].get('y'))
+        rooms[i].save()
+
+    for roomID in roomGraph.keys():
+        room = rooms[roomID]
+        if 'n' in roomGraph[roomID]['exits'] :
+            ex = int(roomGraph[roomID]['exits'].get('n'))
+            rooms[roomID].connectRooms('n', rooms[ex])
+        if 's' in roomGraph[roomID]['exits'] :
+            ex = int(roomGraph[roomID]['exits'].get('s'))
+            rooms[roomID].connectRooms('s', rooms[ex])
+        if 'e' in roomGraph[roomID]['exits'] :
+            ex = int(roomGraph[roomID]['exits'].get('e'))
+            rooms[roomID].connectRooms('e', rooms[ex])
+        if 'w' in roomGraph[roomID]['exits'] :
+            ex = int(roomGraph[roomID]['exits'].get('w'))
+            rooms[roomID].connectRooms('w', rooms[ex])
         
-        self.startingRoom = self.rooms[roomID]
 
 
 

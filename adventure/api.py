@@ -44,7 +44,7 @@ def move(request):
     elif direction == "w":
         nextRoomID = room.w_to
     if nextRoomID is not None and nextRoomID > 0:
-        nextRoom = Room.objects.get(id=nextRoomID)
+        nextRoom = Room.objects.get(room_id=nextRoomID)
         player.currentRoom=nextRoomID
         player.save()
         players = nextRoom.playerNames(player_id)
@@ -65,3 +65,32 @@ def move(request):
 def say(request):
     # IMPLEMENT
     return JsonResponse({'error':"Not yet implemented"}, safe=True, status=500)
+
+
+@csrf_exempt
+@api_view(["GET"])
+def rooms(request):
+    user = request.user
+    roomData = {}
+    queryset = Room.objects.all()
+
+    for room in queryset:
+        roomData[room.room_id] = {}
+        roomData[room.room_id].update({
+            "title": room.title,
+            "description": room.description,
+            "x": room.x,
+            "y": room.y,
+            "exits": {}
+        })
+
+        if room.n_to > 0:
+            roomData[room.room_id]["exits"].update({"n": room.n_to})
+        if room.s_to > 0:
+            roomData[room.room_id]["exits"].update({"s": room.s_to})
+        if room.e_to > 0:
+            roomData[room.room_id]["exits"].update({"e": room.e_to})
+        if room.w_to > 0:
+            roomData[room.room_id]["exits"].update({"w": room.w_to})
+
+    return JsonResponse(roomData, safe=True)

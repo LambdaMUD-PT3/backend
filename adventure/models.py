@@ -40,11 +40,11 @@ class Room(models.Model):
 
 
     def playerNames(self, currentPlayerID):
-        return [p.user.username for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+        return [p.user.username for p in Player.objects.filter(currentRoom=self.room_id) if p.id != int(currentPlayerID)]
 
 
     def playerUUIDs(self, currentPlayerID):
-        return [p.uuid for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+        return [p.uuid for p in Player.objects.filter(currentRoom=self.room_id) if p.id != int(currentPlayerID)]
 
 class World:
     def __init__(self):
@@ -53,24 +53,8 @@ class World:
         self.height = 0
         self.rooms = {}
     def loadGraph(self, roomGraph):
-        #{"0": 
-        #  {"room_id": 0, 
-        #   "title": "A brightly lit room", 
-        #   "description": "You are standing in the center of a brightly lit room.", 
-        #   "coordinates": "(60,60)", 
-        #   "players": ["player204"],
-        #   "terrain": "NORMAL",
-        #   "items": [],
-        #   "exits": ["n", "s", "e", "w"],
-        #   "cooldown": 1.0,
-        #   "errors": [],
-        #   "messages": [],
-        #   "visited": {"n": "?", "s": "?", "e": "?", "w": "?"},
-        #   "x": 60,
-        #   "y": 60},
         numRooms = len(roomGraph)
         rooms = [None] * numRooms
-        # gridSize = 1
 
         newGraph = {}
         for key in roomGraph.keys():
@@ -80,7 +64,6 @@ class World:
             newGraph[newId].update(roomGraph[key])
             
         roomGraph = newGraph
-        # print(f"DEBUG::roomGraph::{roomGraph}")
 
         for i in roomGraph.keys():
             try:
@@ -88,34 +71,16 @@ class World:
                 y = int(roomGraph[i]['y'])
             except:
                 print(f"ERROR::loadGraph::{roomGraph[i]}")
-            # gridSize = max(gridSize, x, y)
 
-
-            # self.rooms[i] = Room(roomGraph[i])
-            # id, name, description, x, y
-            # print(f"DEBUG::{i}, {roomGraph[i].get('title')}, {roomGraph[i].get('description')}, {roomGraph[i].get('x')}, {roomGraph[i].get('y')}")
             self.rooms[i] = Room(i, roomGraph[i].get('title'), roomGraph[i].get('description'), roomGraph[i].get('x'), roomGraph[i].get('y'))
             self.rooms[i].save()
-            # print(f"DEBUG::room::{self.rooms[i]}")
-            # self.rooms[i].printRoomDescription()
 
-        # self.grid = []
-        # gridSize += 1
-        # self.gridSize = gridSize
-
-        # for i in range(0, gridSize):
-        #     self.grid.append([None] * gridSize)
-        
-        # print(f"DEBUG::rooms::{self.rooms}")
         for roomID in roomGraph.keys():
             room = self.rooms[roomID]
-            # self.grid[room.x][room.y] = room
             if 'n' in roomGraph[roomID]['exits'] :
                 ex = int(roomGraph[roomID]['exits'].get('n'))
                 self.rooms[roomID].connectRooms('n', ex)
             if 's' in roomGraph[roomID]['exits'] :
-                # print(f"Connecting {self.rooms[roomID]}")
-                # print(f"to... {self.rooms[ex]}")
                 ex = int(roomGraph[roomID]['exits'].get('s'))
                 self.rooms[roomID].connectRooms('s', ex)
             if 'e' in roomGraph[roomID]['exits'] :
@@ -125,19 +90,18 @@ class World:
                 ex = int(roomGraph[roomID]['exits'].get('w'))
                 self.rooms[roomID].connectRooms('w', ex)
         
-        # self.startingRoom = self.rooms[roomID]
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     currentRoom = models.IntegerField(default=3700)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     def initialize(self):
-        if self.currentRoom == 0:
-            self.currentRoom = Room.objects.first().id
+        if self.currentRoom == 3700 or self.currentRoom == 0:
+            self.currentRoom = Room.objects.first().room_id
             self.save()
     def room(self):
         try:
-            return Room.objects.get(id=self.currentRoom)
+            return Room.objects.get(room_id=self.currentRoom)
         except Room.DoesNotExist:
             self.initialize()
             return self.room()
