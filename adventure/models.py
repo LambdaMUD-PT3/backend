@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+import json
 import uuid
 from area_room import roomGraph
 
@@ -12,11 +13,12 @@ class Room(models.Model):
     description = models.CharField(max_length=500, default="DEFAULT DESCRIPTION")
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)
+    area = models.CharField(max_length=50, default="GENERIC AREA")
+    views = models.TextField(default="")
     n_to = models.IntegerField(default=0)
     s_to = models.IntegerField(default=0)
     e_to = models.IntegerField(default=0)
     w_to = models.IntegerField(default=0)
-
 
     def connectRooms(self, direction, destinationRoom):
         destinationRoomID = destinationRoom
@@ -38,6 +40,17 @@ class Room(models.Model):
                 return
             self.save()
 
+    def getExits(self):
+        exits = {}
+        if self.n_to != 0:
+            exits.update({'n': self.n_to})
+        if self.s_to != 0:
+            exits.update({'s': self.s_to})
+        if self.e_to != 0:
+            exits.update({'e': self.e_to})
+        if self.w_to != 0:
+            exits.update({'w': self.w_to})
+        return exits
 
     def playerNames(self, currentPlayerID):
         return [p.user.username for p in Player.objects.filter(currentRoom=self.room_id) if p.id != int(currentPlayerID)]
@@ -52,7 +65,7 @@ class World:
         self.width = 0
         self.height = 0
         self.rooms = {}
-    def loadGraph(self, roomGraph):
+    def loadGraph(self, roomGraph, areaName):
         numRooms = len(roomGraph)
         rooms = [None] * numRooms
 
@@ -61,7 +74,10 @@ class World:
             # Convert non-int keys to int
             newId = int(key)
             newGraph[newId] = {}
+            if "views" not in roomGraph[key].keys():
+                newGraph[newId]['views'] = {}
             newGraph[newId].update(roomGraph[key])
+            newGraph[newId].update({"area": areaName})
             
         roomGraph = newGraph
 
@@ -72,7 +88,14 @@ class World:
             except:
                 print(f"ERROR::loadGraph::{roomGraph[i]}")
 
-            self.rooms[i] = Room(i, roomGraph[i].get('title'), roomGraph[i].get('description'), roomGraph[i].get('x'), roomGraph[i].get('y'))
+            self.rooms[i] = Room(i, 
+                roomGraph[i].get('title'), 
+                roomGraph[i].get('description'), 
+                roomGraph[i].get('x'), 
+                roomGraph[i].get('y'), 
+                roomGraph[i].get('area'), 
+                json.dumps(roomGraph[i].get('views'))
+            )
             self.rooms[i].save()
 
         for roomID in roomGraph.keys():
